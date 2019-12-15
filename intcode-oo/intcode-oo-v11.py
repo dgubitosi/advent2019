@@ -48,9 +48,12 @@ class IntCodeProcessor(object):
         self.halt = False
         self.interactive = interactive
         self.debug = debug
-        self.inputs = inputs
-        self.input = None
+        self.input = inputs
+        self.input_c = -1
         self.output = []
+        self.output_c = -1
+        self.error = "Something went wrong!"
+        
         if file:
             self.readProgram(file)
 
@@ -143,8 +146,13 @@ class IntCodeProcessor(object):
 
     def getParameters(self):
 
-        np = self.table[self.opcode][1]
-        wr = self.table[self.opcode][-1]
+        try:
+            np = self.table[self.opcode][1]
+            wr = self.table[self.opcode][-1]
+        except:
+            # illegal opcodes are caught here first
+            message = "Illegal opcode: " + str(self.opcode)
+            self.error = message
 
         p = []
         for i in range(np):
@@ -204,13 +212,21 @@ class IntCodeProcessor(object):
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
 
 
-    def getInput(self):
+    def pendingInput(self):
+        return len(self.input) - self.input_c -1
+
+
+    def getInteractiveInput(self):
         value = input("INPUT? ")
-        self.input = value
+        self.getInput(value)
 
 
-    def queueInput(self, inputs):
-        self.inputs += (inputs)
+    def getInput(self, value):
+        self.input.append(value)
+
+
+    def getInputs(self, list):
+        self.input += list
 
 
     def opcode03(self):
@@ -218,34 +234,44 @@ class IntCodeProcessor(object):
         # one parameter
         # last is write position
 
-        if self.interactive:
-            self.getInput()
-        else:
-            if self.inputs:
-                self.input = self.inputs.pop(0)
-            else:
-                # store program counter and pause execution
-                self.pc = self.current
-                self.pause()
-                return
-
         pos = self.write
+        value = None
+
+        if self.interactive:
+            self.getInteractiveInput()
+
+        if self.pendingInput() > 0:
+            self.input_c += 1
+            value = self.input[self.input_c]
+        if value == None:
+            # store program counter and pause execution
+            self.pc = self.current
+            self.pause()
+            return
+
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
-        self.memory[pos] = int(self.input)
+        self.memory[pos] = int(value)
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
         self.input = None
 
 
+    def pendingOutput(self):
+        return len(self.output) - self.output_c - 1
+
+
     def getOutputs(self):
-        return self.output
-
-
-    def clearOutputs(self):
-        self.outputs.clear()
+        n = self.pendingOutput()
+        if n == 0:
+            return []
+        self.output_c = len(self.output) - 1
+        return self.output[-n:]
 
 
     def getOutput(self):
-        return self.output[-1]
+        if self.pendingOutput() == 0:
+            return None
+        self.output_c += 1
+        return self.output[self.output_c]
 
 
     def opcode04(self):
@@ -341,34 +367,39 @@ class IntCodeProcessor(object):
         self.status = True
         while self.status and not self.halt:
 
-            # store current pc value
-            self.current = self.pc
+            try:
+                # store current pc value
+                self.current = self.pc
 
-            # get integer
-            integer = self.memory[self.pc]
-            self.printDebug(["*",self.pc,":",integer])
+                # get integer
+                integer = self.memory[self.pc]
+                self.printDebug(["*",self.pc,":","INT",integer])
 
-            # get opcode
-            self.opcode = integer % 100
-            self.opcode = "{:02d}".format(self.opcode)
+                # get opcode
+                self.opcode = integer % 100
+                self.opcode = "{:02d}".format(self.opcode)
 
-            # addressing mode as 8 char string
-            # 0 = positional
-            # 1 = immediate
-            # 2 = relative
-            self.mode = integer // 100
-            self.mode = "{:08d}".format(self.mode)
-            self.mode = [ int(c) for c in self.mode[::-1] ]
+                # addressing mode as 8 char string
+                # 0 = positional
+                # 1 = immediate
+                # 2 = relative
+                self.mode = integer // 100
+                self.mode = "{:08d}".format(self.mode)
+                self.mode = [ int(c) for c in self.mode[::-1] ]
 
-            # get parameters
-            self.getParameters()
+                # get parameters
+                self.getParameters()
 
-            # program counter is incremented based off
-            # number of parameters for current opcode
-            # jumps in execution can overwrite the program counter
-            np = self.table[self.opcode][1]
-            self.pc += 1 + np
-            self.execute[self.opcode]()
+                # program counter is incremented based off
+                # number of parameters for current opcode
+                # jumps in execution can overwrite the program counter
+                np = self.table[self.opcode][1]
+                self.pc += 1 + np
+                self.execute[self.opcode]()
+
+            except:
+                print("ERROR", self.error)
+                self.halt = True
 
 
 if __name__ == "__main__":
@@ -387,7 +418,7 @@ if __name__ == "__main__":
                 print(file, inputs, end=" ")
                 intcode = IntCodeProcessor(file=file, debug=False, interactive=False, inputs=inputs)
                 intcode.run()
-                print(intcode.getOutputs())
+                print(intcode.pendingOutput(), intcode.getOutputs())
 
         # input file by name, interactive with optional debugging
         else:
@@ -402,3 +433,5 @@ if __name__ == "__main__":
         file = "input"
         intcode = IntCodeProcessor(file=file, debug=True, interactive=False, inputs = [ 5 ])
         intcode.run()
+
+
