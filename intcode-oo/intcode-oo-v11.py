@@ -40,7 +40,7 @@ class IntCodeProcessor(object):
         self.status = None
         self.current = None
         self.relative_base = 0
-        self.pos = None
+        self.write = None
         self.pc = 0
         self.opcode = None
         self.parameters = []
@@ -165,13 +165,13 @@ class IntCodeProcessor(object):
             if self.isModePositional(i):
                 resolved = True
                 if (i == wr):
-                    self.pos = p[wr]
+                    self.write = p[wr]
                 else:
                     p[i] = self.memory[p[i]]
             elif self.isModeRelative(i):
                 resolved = True
                 if (i == wr):
-                    self.pos = p[wr] + self.relative_base
+                    self.write = p[wr] + self.relative_base
                 else:
                     offset = p[i] + self.relative_base
                     p[i] = self.memory[offset]
@@ -188,8 +188,7 @@ class IntCodeProcessor(object):
         # three parameters
         # last is write position
 
-        wr = self.table[self.opcode][-1]
-        pos = self.pos
+        pos = self.write
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
 
         # add
@@ -230,8 +229,7 @@ class IntCodeProcessor(object):
                 self.pause()
                 return
 
-        wr = self.table[self.opcode][-1]
-        pos = self.pos
+        pos = self.write
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
         self.memory[pos] = int(self.input)
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
@@ -290,8 +288,7 @@ class IntCodeProcessor(object):
         # opcode08 = equals
         # three parameters
 
-        wr = self.table[self.opcode][-1]
-        pos = self.pos
+        pos = self.write
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
 
         evaluatedTrue = False
@@ -363,14 +360,6 @@ class IntCodeProcessor(object):
             self.mode = "{:08d}".format(self.mode)
             self.mode = [ int(c) for c in self.mode[::-1] ]
 
-            # apply opcode write mask
-            # write position is treated as immediate
-            #print("!", self.pc, ":", self.opcode, self.mode)
-            #wr = self.table[self.opcode][-1]
-            #if wr is not None:
-            #    self.setModeImmediate(wr)
-            #print("!", self.pc, ":", self.opcode, self.mode)
-
             # get parameters
             self.getParameters()
 
@@ -386,16 +375,30 @@ if __name__ == "__main__":
 
     import sys
 
-    debug = True
     try:
-        file = sys.argv[-1]
-        if file.startswith("test"):
+        # prompts tests
+        if (sys.argv[1] == "tests"):
+            for file in [ "test.9-1", "test.9-2", "test.9-3", "test.9", "input" ]:
+                inputs = []
+                if file == "test.9":
+                    inputs.append(1)
+                if file == "input":
+                    inputs.append(5)
+                print(file, inputs, end=" ")
+                intcode = IntCodeProcessor(file=file, debug=False, interactive=False, inputs=inputs)
+                intcode.run()
+                print(intcode.getOutputs())
+
+        # input file by name, interactive with optional debugging
+        else:
+            file = sys.argv[1]
             debug = False
-        intcode = IntCodeProcessor(file=file, debug=debug)
+            if len(sys.argv) > 2: debug = True
+            intcode = IntCodeProcessor(file=file, debug=debug, interactive=True)
+            intcode.run()
+
+    # no command line options uses default input file with full debugging
     except:
         file = "input"
-        intcode = IntCodeProcessor(file=file, debug=debug, interactive=False, inputs = [ 5 ])
-
-    intcode.run()
-
-
+        intcode = IntCodeProcessor(file=file, debug=True, interactive=False, inputs = [ 5 ])
+        intcode.run()
