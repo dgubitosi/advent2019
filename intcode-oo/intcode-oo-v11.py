@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 
+
+class IllegalOpcode(Exception):
+    """ Catch illegal opcodes """
+
+    def __init__(self, opcode=None):
+        self.msg = "Illegal Opcode"
+        if opcode:
+            self.msg += ": " + str(opcode)
+
+    def __str__(self):
+        return repr(self.msg)
+
+
 class IntCodeProcessor(object):
+    """ IntCode Processor """
 
     def __init__(self, inputs = [], interactive = True, debug = False, file = None):
 
@@ -40,7 +54,7 @@ class IntCodeProcessor(object):
         self.status = None
         self.current = None
         self.relative_base = 0
-        self.write = None
+        self.write_ptr = None
         self.pc = 0
         self.opcode = None
         self.parameters = []
@@ -52,7 +66,6 @@ class IntCodeProcessor(object):
         self.input_c = -1
         self.output = []
         self.output_c = -1
-        self.error = "Something went wrong!"
         
         if file:
             self.readProgram(file)
@@ -146,13 +159,8 @@ class IntCodeProcessor(object):
 
     def getParameters(self):
 
-        try:
-            np = self.table[self.opcode][1]
-            wr = self.table[self.opcode][-1]
-        except:
-            # illegal opcodes are caught here first
-            message = "Illegal opcode: " + str(self.opcode)
-            self.error = message
+        np = self.table[self.opcode][1]
+        wr = self.table[self.opcode][-1]
 
         p = []
         for i in range(np):
@@ -173,13 +181,13 @@ class IntCodeProcessor(object):
             if self.isModePositional(i):
                 resolved = True
                 if (i == wr):
-                    self.write = p[wr]
+                    self.write_ptr = p[wr]
                 else:
                     p[i] = self.memory[p[i]]
             elif self.isModeRelative(i):
                 resolved = True
                 if (i == wr):
-                    self.write = p[wr] + self.relative_base
+                    self.write_ptr = p[wr] + self.relative_base
                 else:
                     offset = p[i] + self.relative_base
                     p[i] = self.memory[offset]
@@ -196,7 +204,7 @@ class IntCodeProcessor(object):
         # three parameters
         # last is write position
 
-        pos = self.write
+        pos = self.write_ptr
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
 
         # add
@@ -234,7 +242,7 @@ class IntCodeProcessor(object):
         # one parameter
         # last is write position
 
-        pos = self.write
+        pos = self.write_ptr
         value = None
 
         if self.interactive:
@@ -314,7 +322,7 @@ class IntCodeProcessor(object):
         # opcode08 = equals
         # three parameters
 
-        pos = self.write
+        pos = self.write_ptr
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
 
         evaluatedTrue = False
@@ -379,6 +387,9 @@ class IntCodeProcessor(object):
                 self.opcode = integer % 100
                 self.opcode = "{:02d}".format(self.opcode)
 
+                if self.opcode not in self.table.keys():
+                    raise IllegalOpcode(self.opcode)
+
                 # addressing mode as 8 char string
                 # 0 = positional
                 # 1 = immediate
@@ -397,18 +408,20 @@ class IntCodeProcessor(object):
                 self.pc += 1 + np
                 self.execute[self.opcode]()
 
-            except:
-                print("ERROR", self.error)
+            except Exception as e:
                 self.halt = True
+                raise e
 
 
 if __name__ == "__main__":
 
     import sys
 
-    try:
-        # prompts tests
+    if len(sys.argv) > 1:
+
+        # run automated tests
         if (sys.argv[1] == "tests"):
+
             for file in [ "test.9-1", "test.9-2", "test.9-3", "test.9", "input" ]:
                 inputs = []
                 if file == "test.9":
@@ -420,7 +433,17 @@ if __name__ == "__main__":
                 intcode.run()
                 print(intcode.pendingOutput(), intcode.getOutputs())
 
-        # input file by name, interactive with optional debugging
+            # catch an intentional error
+            try:
+                file = "input"
+                inputs = [ 3, 3 ]
+                print(file, inputs, end=" ")
+                intcode = IntCodeProcessor(file=file, debug=False, interactive=False, inputs=inputs)
+                intcode.run()
+            except Exception as e:
+                print(e)
+
+        # interactive with optional debugging
         else:
             file = sys.argv[1]
             debug = False
@@ -428,8 +451,7 @@ if __name__ == "__main__":
             intcode = IntCodeProcessor(file=file, debug=debug, interactive=True)
             intcode.run()
 
-    # no command line options uses default input file with full debugging
-    except:
+    else:
         file = "input"
         intcode = IntCodeProcessor(file=file, debug=True, interactive=False, inputs = [ 5 ])
         intcode.run()
