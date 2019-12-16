@@ -252,7 +252,6 @@ class IntCodeProcessor(object):
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
         self.memory[pos] = int(value)
         self.printDebug(["*","@",pos,"=",self.memory[pos]])
-        self.input = None
 
 
     def pendingOutput(self):
@@ -280,7 +279,8 @@ class IntCodeProcessor(object):
 
         self.output.append(self.parameters[0])
         if self.debug:
-            print("OUTPUT:", self.output)
+            n = self.pendingOutput()
+            print("OUTPUT:", self.output[-n:])
         if self.interactive:
             print(self.getOutput())
 
