@@ -161,7 +161,13 @@ class IntCodeProcessor(object):
                 instruction += "@"
             elif positional and not self.isModeImmediate(i):
                 instruction += "@"
+                # show sign for all relative positions
+                if self.isModeRelative(i):
+                    if p >= 0: instruction += "+"
             instruction += str(p)
+            # show the resolved relative positional
+            if positional and self.isModeRelative(i):
+                instruction += "(@" + str(self.relative_base + p) + ")"
             if (i < (np - 1)): 
                 instruction += ","
         self.printDebug(["*",self.pc,":",instruction])
