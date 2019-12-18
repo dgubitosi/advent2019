@@ -150,18 +150,25 @@ class IntCodeProcessor(object):
 
 
     def printInstruction(self, positional = True):
-
         # print instruction
         instruction = self.table[self.opcode][0]
         np = self.table[self.opcode][1]
         wr = self.table[self.opcode][-1]
         for i, p in enumerate(self.parameters):
             instruction += " "
+            # always show @ for the write ptr
             if i == wr:
                 instruction += "@"
             elif positional and not self.isModeImmediate(i):
                 instruction += "@"
+            # show sign to denote relative positions
+            if positional and self.isModeRelative(i):
+                if p >= 0: instruction += "+"
             instruction += str(p)
+            # show the resolved relative position
+            if positional and self.isModeRelative(i):
+                pos = self.relative_base + p
+                instruction += "(@" + str(pos) + ")"
             if (i < (np - 1)): 
                 instruction += ","
         self.printDebug(["*",self.pc,":",instruction])
@@ -191,16 +198,15 @@ class IntCodeProcessor(object):
             if self.isModePositional(i):
                 resolved = True
                 if (i == wr):
-                    self.write_ptr = p[wr]
+                    self.write_ptr = p[i]
                 else:
                     p[i] = self.memoryRead(p[i])
             elif self.isModeRelative(i):
                 resolved = True
                 if (i == wr):
-                    self.write_ptr = p[wr] + self.relative_base
+                    self.write_ptr = self.relative_base + p[i]
                 else:
-                    offset = p[i] + self.relative_base
-                    p[i] = self.memoryRead(offset)
+                    p[i] = self.memoryRead(self.relative_base + p[i])
 
         if resolved:
             self.printInstruction(False)
@@ -425,28 +431,94 @@ class IntCodeProcessor(object):
 
 if __name__ == "__main__":
 
+    w = 48
+    h = 40
+    screen = [[ 0 for i in range(w)] for j in range(h)]
+ 
+    paddle = (0,0)
+    ball = (0,0)
+    direction = 1
+    score = 0
 
-    text = [ 'x', 'y', 'id' ]
-    objects = [ 'empty', 'wall', 'block', 'paddle', 'ball' ]
+    def draw(tiles=[]):
 
-    arcade = IntCodeProcessor(file="game", debug=False, interactive=False)
+        global screen 
+        global paddle
+        global ball
+        global direction
+        global score
+
+        objects = [ ' ', 'X', '#', '-', 'o' ]
+
+        # put tiles on screen grid
+        for t in tiles:
+            print(t)
+            if t[0] < 0:
+                score = t[2]
+                continue
+            if t[2] == 3:
+                paddle = (t[0], t[1])
+            if t[2] == 4:
+                direction = 1
+                if t[0] < ball[0]: direction = -1
+                ball = (t[0], t[1])
+            screen[t[1]][t[0]] = t[2]
+
+        # draw screen
+        for j in range(h):
+            line = ""
+            for i in range(w):
+                o = screen[j][i]
+                line += objects[o]
+            if line != ' '*w: print(line)
+
+        print("SCORE:", score)
+        dir = "-->"
+        if direction < 0:
+            dir = "<--"
+        print("DIRECTION:", dir)
+        print("BALL:", ball)
+        print("PADDLE:", paddle)
+
+
+    arcade = IntCodeProcessor(file="game", debug=True, interactive=False)
     arcade.run()
 
     c = 0
     list = arcade.getOutputs()
-    tiles = [(list[i], list[i+1], list[i+2]) for i in range(0, len(list), 3)]
-    print(c, len(tiles))
-    print(tiles)
     while not arcade.isStopped():
 
+        tiles = [ (list[i], list[i+1], list[i+2]) for i in range(0, len(list), 3) ]
+        print(tiles)
+        draw(tiles)
+
         c += 1
+
         # move joystick
-        arcade.getInput(0)
+        joystick = 0
+
+        # ball is moving to the right
+        if direction == 1:
+            if paddle[0] <= ball[0]:
+                joystick = 1
+            if paddle[0] > ball[0]:
+                joystick = -1
+
+        # ball is moving to the left
+        if direction == -1:
+            if paddle[0] >= ball[0]:
+                joystick = -1
+            if paddle[0] < ball[0]:
+                joystick = 1
+
+        dir = "-->"
+        if joystick < 0: dir = "<--"
+        if joystick == 0: dir = ""
+        print("JOYSTICK:", dir)
+
+        arcade.getInput(joystick)
         arcade.unpause()
 
         list = arcade.getOutputs()
-        tiles = [(list[i], list[i+1], list[i+2]) for i in range(0, len(list), 3)]
-        print(c, len(tiles))
-        print(tiles)
 
 

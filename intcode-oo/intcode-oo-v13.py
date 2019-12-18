@@ -150,24 +150,25 @@ class IntCodeProcessor(object):
 
 
     def printInstruction(self, positional = True):
-
         # print instruction
         instruction = self.table[self.opcode][0]
         np = self.table[self.opcode][1]
         wr = self.table[self.opcode][-1]
         for i, p in enumerate(self.parameters):
             instruction += " "
+            # always show @ for the write ptr
             if i == wr:
                 instruction += "@"
             elif positional and not self.isModeImmediate(i):
                 instruction += "@"
-                # show sign for all relative positions
-                if self.isModeRelative(i):
-                    if p >= 0: instruction += "+"
-            instruction += str(p)
-            # show the resolved relative positional
+            # show sign to denote relative positions
             if positional and self.isModeRelative(i):
-                instruction += "(@" + str(self.relative_base + p) + ")"
+                if p >= 0: instruction += "+"
+            instruction += str(p)
+            # show the resolved relative position
+            if positional and self.isModeRelative(i):
+                pos = self.relative_base + p
+                instruction += "(@" + str(pos) + ")"
             if (i < (np - 1)): 
                 instruction += ","
         self.printDebug(["*",self.pc,":",instruction])
@@ -197,16 +198,15 @@ class IntCodeProcessor(object):
             if self.isModePositional(i):
                 resolved = True
                 if (i == wr):
-                    self.write_ptr = p[wr]
+                    self.write_ptr = p[i]
                 else:
                     p[i] = self.memoryRead(p[i])
             elif self.isModeRelative(i):
                 resolved = True
                 if (i == wr):
-                    self.write_ptr = p[wr] + self.relative_base
+                    self.write_ptr = self.relative_base + p[i]
                 else:
-                    offset = p[i] + self.relative_base
-                    p[i] = self.memoryRead(offset)
+                    p[i] = self.memoryRead(self.relative_base + p[i])
 
         if resolved:
             self.printInstruction(False)
