@@ -435,9 +435,9 @@ if __name__ == "__main__":
     h = 40
     screen = [[ 0 for i in range(w)] for j in range(h)]
  
-    paddle = (0,0)
-    ball = (0,0)
-    direction = 1
+    paddle = (None,None)
+    ball = (None,None)
+    direction = 0
     score = 0
 
     def draw(tiles=[]):
@@ -452,19 +452,28 @@ if __name__ == "__main__":
 
         # put tiles on screen grid
         for t in tiles:
-            print(t)
             if t[0] < 0:
                 score = t[2]
                 continue
             if t[2] == 3:
                 paddle = (t[0], t[1])
             if t[2] == 4:
-                direction = 1
-                if t[0] < ball[0]: direction = -1
+                if ball[0] is not None:
+                    if t[0] < ball[0]:
+                        direction = -1
+                    elif t[0] > ball[0]:
+                        direction = 1
+                    else:
+                        direction = 0
                 ball = (t[0], t[1])
             screen[t[1]][t[0]] = t[2]
 
-        # draw screen
+        # clear screan
+        print(chr(27)+'[2j')
+        print('\033c')
+        print('\x1bc')
+
+        # print titles
         for j in range(h):
             line = ""
             for i in range(w):
@@ -472,16 +481,20 @@ if __name__ == "__main__":
                 line += objects[o]
             if line != ' '*w: print(line)
 
+        # print score and info
         print("SCORE:", score)
-        dir = "-->"
         if direction < 0:
             dir = "<--"
-        print("DIRECTION:", dir)
+        elif direction > 0:
+            dir = "-->"
+        else:
+            dir = "X"
         print("BALL:", ball)
+        print("DIRECTION:", dir)
         print("PADDLE:", paddle)
 
 
-    arcade = IntCodeProcessor(file="game", debug=True, interactive=False)
+    arcade = IntCodeProcessor(file="game", debug=False, interactive=False)
     arcade.run()
 
     c = 0
@@ -489,7 +502,6 @@ if __name__ == "__main__":
     while not arcade.isStopped():
 
         tiles = [ (list[i], list[i+1], list[i+2]) for i in range(0, len(list), 3) ]
-        print(tiles)
         draw(tiles)
 
         c += 1
@@ -499,21 +511,24 @@ if __name__ == "__main__":
 
         # ball is moving to the right
         if direction == 1:
-            if paddle[0] <= ball[0]:
+            if paddle[0] < ball[0]:
                 joystick = 1
             if paddle[0] > ball[0]:
                 joystick = -1
 
         # ball is moving to the left
         if direction == -1:
-            if paddle[0] >= ball[0]:
+            if paddle[0] > ball[0]:
                 joystick = -1
             if paddle[0] < ball[0]:
                 joystick = 1
 
-        dir = "-->"
-        if joystick < 0: dir = "<--"
-        if joystick == 0: dir = ""
+        if joystick < 0:
+            dir = "<--"
+        elif joystick > 0:
+            dir = "-->"
+        else:
+            dir = "X"
         print("JOYSTICK:", dir)
 
         arcade.getInput(joystick)
