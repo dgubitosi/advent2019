@@ -7,7 +7,7 @@ import pprint
 try:
     file = sys.argv[1]
 except:
-    file = "input"
+    file = "input.txt"
 
 asteroids = {}
 with open(file) as f:
@@ -19,7 +19,7 @@ with open(file) as f:
                 asteroids.setdefault(pos,1)
         row += 1
 
-pprint.pprint(asteroids)
+#pprint.pprint(asteroids)
 
 targets = {}
 precision = 3
@@ -59,7 +59,7 @@ bet = 0
 asteroids.pop(best)
 while len(asteroids.keys()):
     r += 1
-    print(r, "targets","=",len(asteroids))
+    print(r, "targets", "=", len(asteroids))
     for a in range(360):
         for decimal in range(steps):
             angle = a + decimal/steps
@@ -77,4 +77,4 @@ while len(asteroids.keys()):
                 #print(r, angle)
                 pass
 
-print("bet",bet) 
+print("bet", bet) 

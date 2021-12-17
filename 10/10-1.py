@@ -6,7 +6,7 @@ import math
 try:
     file = sys.argv[1]
 except:
-    file = "input"
+    file = "input.txt"
 
 asteroids = []
 with open(file) as f:
@@ -36,5 +36,5 @@ for i, b in enumerate(asteroids):
     table.setdefault(b,{})
     table[b]=angles
 
-print(best, count)
 print(table[best])
+print(best, count)
