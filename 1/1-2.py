@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 fuel = 0
-with open("input") as F:
+with open("input.txt") as F:
     for number in F:
         n = int(number)
         f = []
