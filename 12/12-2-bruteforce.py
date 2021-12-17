@@ -5,7 +5,7 @@ import re
 import itertools
 import hashlib
 
-file = "input"
+file = "input.txt"
 if len(sys.argv) > 1:
     file = sys.argv[1]
 
