@@ -386,7 +386,7 @@ if __name__ == "__main__":
         intcode = IntCodeProcessor(file=file, debug=debug)
     except:
         file = "input.txt"
-        intcode = IntCodeProcessor(file=file, debug=False, interactive=False, inputs = [ 1 ])
+        intcode = IntCodeProcessor(file=file, debug=False, interactive=False, inputs = [ 2 ])
 
     intcode.run()
 
