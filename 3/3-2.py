@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-with open("input") as F:
+with open("input.txt") as F:
     pathes = F.readlines()
 
 direction = {
