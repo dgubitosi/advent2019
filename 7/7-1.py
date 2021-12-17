@@ -299,7 +299,7 @@ if __name__ == "__main__":
     try:
         file = sys.argv[1]
     except:
-        file = "input"
+        file = "input.txt"
  
     # test.1 = 43210 
     # test.2 = 01234

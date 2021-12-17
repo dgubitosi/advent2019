@@ -345,7 +345,7 @@ if __name__ == "__main__":
     except:
         file = "test.8"
         file = "test.9"
-        file = "input"
+        file = "input.txt"
     
     def permute(s):
         if (len(s)==0): return [ ]
