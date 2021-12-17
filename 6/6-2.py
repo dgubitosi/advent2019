@@ -6,7 +6,7 @@ import sys
 try:
     file = sys.argv[1]
 except:
-    file = "input"
+    file = "input.txt"
 
 adjacencies = {}
 with open(file) as F:
@@ -36,4 +36,5 @@ while True:
     candidates = [ node for node in unvisited.items() if node[1] ]
     current, current_distance = sorted(candidates, key = lambda x: x[1])[0]
 
-print(visited['SAN'])
+# off by two because the orbital transfers are the intermediate steps
+print(visited['SAN'] - 2)

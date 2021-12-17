@@ -6,7 +6,7 @@ import sys
 try:
     file = sys.argv[1]
 except:
-    file = "input"
+    file = "input.txt"
 
 table = {}
 with open(file) as F:
