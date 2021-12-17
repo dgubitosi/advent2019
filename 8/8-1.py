@@ -5,7 +5,7 @@ import sys
 try:
     file = sys.argv[1]
 except:
-    file = "input"
+    file = "input.txt"
 
 w = 25
 h = 6
