@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-with open("input") as F:
+with open("input.txt") as F:
     memory = []
     for line in F:
         memory.extend(line.split(','))
