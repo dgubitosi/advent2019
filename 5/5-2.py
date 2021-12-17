@@ -11,7 +11,7 @@ import sys
 try:
     file = sys.argv[1]
 except:
-    file = "input"
+    file = "input.txt"
 
 # read program into memory as integers
 with open(file) as F:

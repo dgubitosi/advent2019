@@ -9,7 +9,7 @@ halt = False
 
 
 # read program into memory as integers
-with open("input") as F:
+with open("input.txt") as F:
     for line in F:
         for i in line.strip().split(','):
             memory.append(int(i))
