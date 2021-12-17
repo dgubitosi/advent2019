@@ -427,7 +427,7 @@ if __name__ == "__main__":
     min = [ 0, 0 ]
     max = [ 0, 0 ]
 
-    robot = IntCodeProcessor(file="input", debug=False, interactive=False)
+    robot = IntCodeProcessor(file="input.txt", debug=False, interactive=False)
     robot.run()
     while not robot.isStopped():
 

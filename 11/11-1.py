@@ -424,7 +424,7 @@ if __name__ == "__main__":
     panels = { pos: [ 0, 0 ] }
     path = []
 
-    robot = IntCodeProcessor(file="input", debug=False, interactive=False)
+    robot = IntCodeProcessor(file="input.txt", debug=False, interactive=False)
     robot.run()
     while not robot.isStopped():
         # current panel
