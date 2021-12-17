@@ -14,7 +14,7 @@ def isValid(n):
         if dup[k] == 1: return True
     return False
 
-with open("input") as F:
+with open("input.txt") as F:
     start, end = F.readline().strip().split('-',2)
 
 c = 0

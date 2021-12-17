@@ -13,7 +13,7 @@ def isValid(n):
     if duplicate: return True
     return False
 
-with open("input") as F:
+with open("input.txt") as F:
     start, end = F.readline().strip().split('-',2)
 
 c = 0
