@@ -427,7 +427,7 @@ if __name__ == "__main__":
 
     tiles = [ ]
     ids = { }
-    arcade = IntCodeProcessor(file="input", debug=False, interactive=False)
+    arcade = IntCodeProcessor(file="input.txt", debug=False, interactive=False)
     arcade.run()
     #print(arcade.getStatus())
     list = arcade.getOutputs()

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import time
 
 class IllegalOpcode(Exception):
     """ Catch illegal opcodes """
@@ -448,7 +449,7 @@ if __name__ == "__main__":
         global direction
         global score
 
-        objects = [ ' ', 'X', '#', '-', 'o' ]
+        objects = [ ' ', 'X', '#', '=', 'o' ]
 
         # put tiles on screen grid
         for t in tiles:
@@ -535,5 +536,8 @@ if __name__ == "__main__":
         arcade.unpause()
 
         list = arcade.getOutputs()
+        time.sleep(0.050)
 
-
+    # draw last frame
+    tiles = [ (list[i], list[i+1], list[i+2]) for i in range(0, len(list), 3) ]
+    draw(tiles)
